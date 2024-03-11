@@ -29,7 +29,7 @@ namespace STPL_API.DataAccessLayer
         /// <param name="occupancy"></param>
         /// <param name="state_changed"></param>
         /// <returns></returns>
-        public bool CreateNewRecordTransaction(IRepositoryWrapper _repositoryWrapper,string requestor_ip, int deviceid, long request_timestramp, string data_type, bool? IsfullPowerMode, bool? IsactivePowerControl, int? firmware_Version, int? temperature, int? humidity, int? version, string message_type, bool? occupancy, int? state_changed)
+        public int CreateNewRecordTransaction(IRepositoryWrapper _repositoryWrapper,string requestor_ip, int deviceid, long request_timestramp, string data_type, bool? IsfullPowerMode, bool? IsactivePowerControl, int? firmware_Version, int? temperature, int? humidity, int? version, string message_type, bool? occupancy, int? state_changed)
         {
             try
             {
@@ -47,19 +47,19 @@ namespace STPL_API.DataAccessLayer
                 bool result = _repositoryWrapper.recordDataRepository.CreateNewRecordData( data_type, tbRecordTrans.trans_id, IsfullPowerMode, IsactivePowerControl, firmware_Version, temperature, humidity,version, message_type, occupancy, state_changed);
                 if (result)
                 {
-                    return true;
+                    return tbRecordTrans.trans_id;
                 }
                 else
                 {
                     Log.Warn("[CreateNewRecordTransaction] Can't save new record data");
 
-                    return false;
+                    return 0;
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex,"CreateNewRecordTransaction" + Environment.NewLine + ex.StackTrace);
-                return false;
+                return 0;
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using STPL_API.BusinessLogic;
 using STPL_API.DataAccessLayer;
+using System.Text;
 
 namespace STPL_API.Controllers
 {
@@ -20,7 +21,7 @@ namespace STPL_API.Controllers
         /// <returns></returns>
         [HttpPost("SaveData", Name = "SaveData")]
 
-        public dynamic SaveData([FromBody] Newtonsoft.Json.Linq.JObject param)
+        public SaveDataResponseBuilder SaveData([FromBody] Newtonsoft.Json.Linq.JObject param)
         {
             try
             {
@@ -42,30 +43,32 @@ namespace STPL_API.Controllers
                         //TimeSpan timeSpan = TimeSpan.FromSeconds(requestData.timestamp.Value);
 
 
-                        bool result = _repositoryWrapper.reqTransRepository.CreateNewRecordTransaction(_repositoryWrapper, "web", deviceid, requestData.timestamp.Value, requestData.dataType.Value, fullPowerMode, activePowerControl, firmwareVersion, temperature, humidity, version, messageType, occupancy, stateChanged);
-                        if (result)
+                        int referenceno = _repositoryWrapper.reqTransRepository.CreateNewRecordTransaction(_repositoryWrapper, "web", deviceid, requestData.timestamp.Value, requestData.dataType.Value, fullPowerMode, activePowerControl, firmwareVersion, temperature, humidity, version, messageType, occupancy, stateChanged);
+                        if (referenceno > 0)
                         {
-                            return new { status = 201, message = "Save Successfully", data = new { createddatetime = DateTime.Now } };
+                            string sref = referenceno+DateTime.Now.ToString("yyyyMMddHHmmss")+ "uR!#2p9Q&8Ls";
+                            sref= Convert.ToBase64String(Encoding.UTF8.GetBytes(sref));
+                            return new SaveDataResponseBuilder { status = 201, message = "Save Successfully", data = new { referenceno = sref, response_datetime=DateTime.Now } };
                         }
                         else
                         {
-                            return new { status = 500, message = "Internal Server Error", data = new { } };
+                            return new SaveDataResponseBuilder { status = 500, message = "Internal Server Error", data = new { } };
                         }
                     }
                     else
                     {
-                        return new { status = 500, message = "Internal Server Error", data = new { } };
+                        return new SaveDataResponseBuilder { status = 500, message = "Internal Server Error", data = new { } };
                     }
                 }
                 else
                 {
-                    return new { status = 400, message = "Invalid Request Body", data = new { } };
+                    return new SaveDataResponseBuilder { status = 400, message = "Invalid Request Body", data = new { } };
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "SaveData" + Environment.NewLine + ex.StackTrace);
-                return false;
+                return new SaveDataResponseBuilder { status = 500, message = "Internal Server Error", data = new { } };
             }
         }
     }

@@ -1,15 +1,8 @@
-﻿using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
-using STPL_API.DataAccessLayer;
 using STPL_API.BusinessLogic;
+using STPL_API.DataAccessLayer;
 
 namespace STPL_API
 {
@@ -64,7 +57,10 @@ namespace STPL_API
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
-
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "STPL_API", Version = "v1" });
+            });
             services.AddDistributedMemoryCache(); // Adds a default in-memory implementation of IDistributedCache
             services.AddSession(options =>
             {
@@ -101,8 +97,12 @@ namespace STPL_API
 
             // Shows UseCors with CorsPolicyBuilder.
             app.UseCors("CorsAllowAllPolicy");
+            if (env.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
 
-           
             app.UseAuthentication();
             
             //loggerFactory.AddConsole(LogLevel.Warning, true).AddDebug();
